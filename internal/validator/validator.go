@@ -10,6 +10,7 @@ type ContactForm struct {
 	Email   string `json:"email"`
 	Subject string `json:"subject"`
 	Message string `json:"message"`
+	Company string `json:"company"` // honeypot field
 }
 
 type ValidationError struct {

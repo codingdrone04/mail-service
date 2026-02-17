@@ -49,6 +49,17 @@ func (h *SendHandler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	validator.Sanitize(&form)
 
+	// Honeypot: if the hidden "company" field is filled, it's a bot
+	if form.Company != "" {
+		slog.Info("honeypot triggered", "from_email", form.Email, "from_name", form.Name)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response{
+			Success: true,
+			Message: "Message sent successfully",
+		})
+		return
+	}
+
 	if errs := validator.Validate(&form); len(errs) > 0 {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		json.NewEncoder(w).Encode(response{

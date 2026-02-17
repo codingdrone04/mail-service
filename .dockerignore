@@ -1,0 +1,7 @@
+bin/
+server
+.env
+.git
+.gitignore
+README.md
+Makefile
