@@ -1,4 +1,4 @@
 .env
 /bin/
 mail-service
-server
+/server
