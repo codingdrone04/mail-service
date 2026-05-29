@@ -8,6 +8,11 @@ func CORS(allowedOrigins []string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
 
+		// We echo back the request Origin, so the response varies by it.
+		// Without Vary, a shared cache (e.g. Cloudflare) could serve a CORS
+		// response computed for a different origin.
+		w.Header().Add("Vary", "Origin")
+
 		if origin != "" && isAllowed(origin, allowedOrigins) {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
