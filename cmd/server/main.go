@@ -35,9 +35,13 @@ func main() {
 	mux.HandleFunc("GET /health", handler.Health)
 	mux.Handle("POST /send", middleware.RateLimit(cfg.RateLimitPerMin, http.HandlerFunc(sendHandler.Handle)))
 
-	// Middleware stack: Logger -> CORS -> mux
-	wrapped := middleware.Logger(
-		middleware.CORS(cfg.AllowedOrigins, mux),
+	// Middleware stack: SecurityHeaders -> Logger -> CORS -> mux
+	// SecurityHeaders is outermost so its headers land on every response,
+	// including CORS preflights and rate-limit 429s.
+	wrapped := middleware.SecurityHeaders(
+		middleware.Logger(
+			middleware.CORS(cfg.AllowedOrigins, mux),
+		),
 	)
 
 	server := &http.Server{
