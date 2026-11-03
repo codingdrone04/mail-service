@@ -6,10 +6,16 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
-      - name: Deploy
+      - name: Trigger deploy webhook
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
         run: |
-          cd ~/apps/mail-service
-          git pull origin main
-          docker compose up -d --build
+          PAYLOAD="{\"ref\":\"refs/heads/main\",\"ts\":$(date +%s)}"
+          SIGNATURE="sha256=$(printf '%s' "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | awk '{print $2}')"
+          curl -fsS -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Hub-Signature-256: $SIGNATURE" \
+            -d "$PAYLOAD"
