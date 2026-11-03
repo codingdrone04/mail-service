@@ -64,7 +64,7 @@ cp .env.example .env
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `SERVER_PORT` | No | 8080 | Server port |
-| `CORS_ALLOWED_ORIGINS` | No | * | Comma-separated allowed origins |
+| `CORS_ALLOWED_ORIGINS` | Yes | - | Comma-separated allowed origins |
 | `SMTP_HOST` | Yes | - | SMTP server hostname |
 | `SMTP_PORT` | No | 587 | SMTP server port |
 | `SMTP_USER` | Yes | - | SMTP username |

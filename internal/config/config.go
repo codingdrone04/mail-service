@@ -22,7 +22,7 @@ type Config struct {
 func Load() Config {
 	cfg := Config{
 		Port:            getEnvOrDefault("SERVER_PORT", "8080"),
-		AllowedOrigins:  parseOrigins(getEnvOrDefault("CORS_ALLOWED_ORIGINS", "*")),
+		AllowedOrigins:  parseOrigins(requireEnv("CORS_ALLOWED_ORIGINS")),
 		SMTPHost:        requireEnv("SMTP_HOST"),
 		SMTPPort:        getEnvOrDefault("SMTP_PORT", "587"),
 		SMTPUser:        requireEnv("SMTP_USER"),
