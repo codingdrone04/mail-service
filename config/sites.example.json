@@ -1,0 +1,16 @@
+{
+  "sites": [
+    {
+      "id": "mon-site",
+      "name": "Mon Site",
+      "origins": ["https://www.example.com"],
+      "to": ["contact@example.com"],
+      "subject_prefix": "[Mon Site]",
+      "lang": "fr",
+      "require_contact": "phone",
+      "rate_limit_per_minute": 5,
+      "daily_limit": 50,
+      "timezone": "Europe/Paris"
+    }
+  ]
+}

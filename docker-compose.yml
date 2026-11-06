@@ -5,4 +5,13 @@ services:
       - "127.0.0.1:8080:8080"
     env_file:
       - .env
+    # Site list, read-only. Set SITES_FILE=/app/config/sites.json in .env to use it.
+    volumes:
+      - ./config:/app/config:ro
     restart: unless-stopped
+    read_only: true
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
