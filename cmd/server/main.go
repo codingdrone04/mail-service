@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"flag"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -18,6 +20,9 @@ import (
 )
 
 func main() {
+	check := flag.Bool("check", false, "validate the configuration (env + SITES_FILE) and exit")
+	flag.Parse()
+
 	// Structured JSON logging
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 
@@ -27,13 +32,25 @@ func main() {
 	}
 
 	cfg := config.Load()
+	if *check {
+		fmt.Printf("config OK: default site + %d site(s)\n", len(cfg.Sites))
+		for id, s := range cfg.Sites {
+			fmt.Printf("  /send/%s -> %d recipient(s), origins %v\n", id, len(s.To), s.Origins)
+		}
+		return
+	}
 
 	mailer := mail.NewMailer(cfg)
-	sendHandler := handler.NewSendHandler(mailer)
+	sendHandler := handler.NewSendHandler(mailer, cfg, middleware.NewLimiter())
+	send := http.HandlerFunc(sendHandler.Handle)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handler.Health)
-	mux.Handle("POST /send", middleware.RateLimit(cfg.RateLimitPerMin, http.HandlerFunc(sendHandler.Handle)))
+	mux.Handle("POST /send", send)
+	mux.Handle("POST /send/{site}", send)
+	for id := range cfg.Sites {
+		slog.Info("site enabled", "site", id, "route", "/send/"+id)
+	}
 
 	// Middleware stack: SecurityHeaders -> Logger -> CORS -> mux
 	// SecurityHeaders is outermost so its headers land on every response,
@@ -45,10 +62,11 @@ func main() {
 	)
 
 	server := &http.Server{
-		Addr:         ":" + cfg.Port,
-		Handler:      wrapped,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		Addr:        ":" + cfg.Port,
+		Handler:     wrapped,
+		ReadTimeout: 10 * time.Second,
+		// Room for one SMTP attempt, one retry and the pause between them.
+		WriteTimeout: 2*cfg.SMTPTimeout + 5*time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 

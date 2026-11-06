@@ -2,3 +2,7 @@
 /bin/
 mail-service
 /server
+
+# Per-server site list (recipients): copy config/sites.example.json
+config/sites.json
+preview.html

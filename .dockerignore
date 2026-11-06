@@ -5,3 +5,4 @@ server
 .gitignore
 README.md
 Makefile
+config/sites.json
